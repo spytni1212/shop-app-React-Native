@@ -1,1 +1,0 @@
-# shop-app-React-Native
