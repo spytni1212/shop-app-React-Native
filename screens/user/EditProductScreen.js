@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import {
 	View,
 	ScrollView,
@@ -26,8 +26,13 @@ const EditProductScreen = props => {
 		editedProduct ? editedProduct.description : ''
 	)
 
-	if (prodId) {
-	}
+	const submitHandler = useCallback(() => {
+		console.log('wsgrv')
+	}, [])
+
+	useEffect(() => {
+		props.navigation.setParams({ submit: submitHandler })
+	}, [submitHandler])
 
 	return (
 		<ScrollView>
@@ -72,6 +77,7 @@ const EditProductScreen = props => {
 }
 
 EditProductScreen.navigationOptions = navData => {
+	const submit = navData.navigation.getParam('submit')
 	return {
 		headerTitle: navData.navigation.getParam('productId')
 			? 'Edit Product'
@@ -85,9 +91,7 @@ EditProductScreen.navigationOptions = navData => {
 							? 'md-checkmark'
 							: 'ios-checkmark'
 					}
-					onPress={() => {
-						navData.navigation.navigate('EditProduct')
-					}}
+					onPress={submit}
 				/>
 			</HeaderButtons>
 		),
