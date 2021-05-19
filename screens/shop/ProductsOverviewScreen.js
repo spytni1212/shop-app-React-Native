@@ -1,5 +1,12 @@
-import React, { useEffect } from 'react'
-import { FlatList, Platform, Button } from 'react-native'
+import React, { useEffect, useState, useCallback } from 'react'
+import {
+	View,
+	FlatList,
+	Platform,
+	Button,
+	ActivityIndicator,
+	Text,
+} from 'react-native'
 import { useSelector, useDispatch } from 'react-redux'
 import { HeaderButtons, Item } from 'react-navigation-header-buttons'
 
@@ -10,18 +17,75 @@ import Colors from '../../constants/Colors'
 import { fetchProducts } from '../../store/actions/products'
 
 const ProductsOverviewScreen = props => {
+	const [isLoading, setIsLoading] = useState(false)
+	const [error, setError] = useState()
 	const products = useSelector(state => state.products.availableProducts)
 	const dispatch = useDispatch()
 
+	const loadProducts = useCallback(async () => {
+		setError(null)
+		setIsLoading(true)
+		try {
+			await dispatch(fetchProducts())
+		} catch (err) {
+			setError(err.message)
+		}
+		setIsLoading(false)
+	}, [dispatch, setIsLoading, setError])
+
 	useEffect(() => {
-		dispatch(fetchProducts())
-	}, [dispatch])
+		loadProducts()
+	}, [dispatch, loadProducts])
 
 	const selectItemHandler = (id, title) => {
 		props.navigation.navigate('ProductDetail', {
 			productId: id,
 			productTitle: title,
 		})
+	}
+
+	if (error) {
+		return (
+			<View
+				style={{
+					flex: 1,
+					justifyContent: 'center',
+					alignItems: 'center',
+				}}>
+				<Text>An error occurred!</Text>
+				<Button
+					title='Try again'
+					onPress={loadProducts}
+					color={Colors.primary}
+				/>
+			</View>
+		)
+	}
+
+	if (isLoading) {
+		return (
+			<View
+				style={{
+					flex: 1,
+					justifyContent: 'center',
+					alignItems: 'center',
+				}}>
+				<ActivityIndicator size='large' color={Colors.primary} />
+			</View>
+		)
+	}
+
+	if (!isLoading && products.length === 0) {
+		return (
+			<View
+				style={{
+					flex: 1,
+					justifyContent: 'center',
+					alignItems: 'center',
+				}}>
+				<Text>No products found. Maybe start adding some!</Text>
+			</View>
+		)
 	}
 
 	return (
