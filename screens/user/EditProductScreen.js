@@ -6,14 +6,20 @@ import {
 	TextInput,
 	StyleSheet,
 	Platform,
+	ActivityIndicator,
+	Alert,
 } from 'react-native'
 import { HeaderButtons, Item } from 'react-navigation-header-buttons'
 import { useSelector, useDispatch } from 'react-redux'
 
 import HeaderButton from '../../components/UI/HeaderButton'
+import Colors from '../../constants/Colors'
 import { createProduct, updateProduct } from '../../store/actions/products'
 
 const EditProductScreen = props => {
+	const [isLoading, setIsLoading] = useState(false)
+	const [error, setError] = useState()
+
 	const prodId = props.navigation.getParam('productId')
 	const editedProduct = useSelector(state =>
 		state.products.userProducts.find(prod => prod.id === prodId)
@@ -29,18 +35,43 @@ const EditProductScreen = props => {
 		editedProduct ? editedProduct.description : ''
 	)
 
-	const submitHandler = useCallback(() => {
-		if (editedProduct) {
-			dispatch(updateProduct(prodId, title, description, imageUrl))
-		} else {
-			dispatch(createProduct(title, description, imageUrl, +price))
+	useEffect(() => {
+		if (error) {
+			Alert.alert('An error occurred!', error, [{ text: 'Okay' }])
 		}
-		props.navigation.goBack()
+	}, [error])
+
+	const submitHandler = useCallback(async () => {
+		setError(null)
+		setIsLoading(true)
+		try {
+			if (editedProduct) {
+				await dispatch(
+					updateProduct(prodId, title, description, imageUrl)
+				)
+			} else {
+				await dispatch(
+					createProduct(title, description, imageUrl, +price)
+				)
+			}
+			props.navigation.goBack()
+		} catch (err) {
+			setError(err.message)
+		}
+		setIsLoading(false)
 	}, [dispatch, prodId, title, description, imageUrl, price])
 
 	useEffect(() => {
 		props.navigation.setParams({ submit: submitHandler })
 	}, [submitHandler])
+
+	if (isLoading) {
+		return (
+			<View style={styles.centered}>
+				<ActivityIndicator size='large' color={Colors.primary} />
+			</View>
+		)
+	}
 
 	return (
 		<ScrollView>
@@ -122,6 +153,11 @@ const styles = StyleSheet.create({
 		paddingVertical: 5,
 		borderBottomColor: '#ccc',
 		borderBottomWidth: 1,
+	},
+	centered: {
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center',
 	},
 })
 
