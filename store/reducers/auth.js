@@ -1,8 +1,9 @@
-import { AUTHENTICATE, LOGOUT } from '../actions/auth'
+import { AUTHENTICATE, LOGOUT, SET_DID_TRY_AUTO_LOGIN } from '../actions/auth'
 
 const initialState = {
 	token: null,
 	userId: null,
+	didTryAutoLogin: false,
 }
 
 const authReducer = (state = initialState, action) => {
@@ -11,14 +12,18 @@ const authReducer = (state = initialState, action) => {
 			return {
 				token: action.token,
 				userId: action.userId,
+				didTryAutoLogin: true,
+			}
+		case SET_DID_TRY_AUTO_LOGIN:
+			return {
+				...state,
+				didTryAutoLogin: true,
 			}
 		case LOGOUT:
-			return initialState
-		// case SIGNUP:
-		// 	return {
-		// 		token: action.token,
-		// 		userId: action.userId,
-		// 	}
+			return {
+				...initialState,
+				didTryAutoLogin: true,
+			}
 		default:
 			return state
 	}
